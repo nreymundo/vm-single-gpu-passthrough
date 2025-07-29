@@ -1,0 +1,116 @@
+<domain xmlns:qemu="http://libvirt.org/schemas/domain/qemu/1.0" type="kvm">
+  <name>win11</name>
+  <uuid>REPLACE-WITH-UUID</uuid>
+  <metadata>
+    <libosinfo:libosinfo xmlns:libosinfo="http://libosinfo.org/xmlns/libvirt/domain/1.0">
+      <libosinfo:os id="http://microsoft.com/win/11"/>
+    </libosinfo:libosinfo>
+  </metadata>
+  <memory unit="KiB">33554432</memory>
+  <currentMemory unit="KiB">33554432</currentMemory>
+  <memoryBacking>
+    <hugepages/>
+    <locked/>
+  </memoryBacking>
+  <vcpu placement="static">16</vcpu>
+  <cputune>
+    <!-- Example: pin VCPUs to host CPUs -->
+    <vcpupin vcpu="0" cpuset="8"/>
+    <vcpupin vcpu="1" cpuset="9"/>
+    <!-- ... (rest of CPU pins) ... -->
+  </cputune>
+  <numatune>
+    <memory mode="strict" nodeset="0"/>
+  </numatune>
+  <sysinfo type="smbios">
+    <system>
+      <entry name="manufacturer">REDACTED</entry>
+      <entry name="product">REDACTED</entry>
+      <entry name="version">REDACTED</entry>
+      <entry name="serial">REDACTED</entry>
+      <entry name="uuid">REPLACE-WITH-UUID</entry>
+    </system>
+  </sysinfo>
+  <os firmware="efi">
+    <type arch="x86_64" machine="pc-q35-10.0">hvm</type>
+    <firmware>
+      <feature enabled="no" name="enrolled-keys"/>
+      <feature enabled="yes" name="secure-boot"/>
+    </firmware>
+    <loader readonly="yes" secure="yes" type="pflash" format="raw">/usr/share/edk2/x64/OVMF_CODE.secboot.4m.fd</loader>
+    <nvram template="/usr/share/edk2/x64/OVMF_VARS.4m.fd" templateFormat="raw" format="raw">/var/lib/libvirt/qemu/nvram/REPLACE-WITH-VARS-FILE</nvram>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+    <hyperv mode="custom">
+      <relaxed state="on"/>
+      <vapic state="on"/>
+      <spinlocks state="on" retries="8191"/>
+      <vpindex state="on"/>
+      <runtime state="on"/>
+      <synic state="on"/>
+      <stimer state="on"/>
+      <frequencies state="on"/>
+      <tlbflush state="on"/>
+      <ipi state="on"/>
+      <avic state="on"/>
+    </hyperv>
+    <vmport state="off"/>
+    <smm state="on"/>
+  </features>
+  <cpu mode="host-passthrough" check="none" migratable="off">
+    <topology sockets="1" dies="1" clusters="1" cores="16" threads="1"/>
+    <feature policy="disable" name="hypervisor"/>
+  </cpu>
+  <clock offset="localtime">
+    <timer name="rtc" tickpolicy="catchup"/>
+    <timer name="pit" tickpolicy="delay"/>
+    <timer name="hpet" present="no"/>
+    <timer name="hypervclock" present="yes"/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <pm>
+    <suspend-to-mem enabled="no"/>
+    <suspend-to-disk enabled="no"/>
+  </pm>
+  <devices>
+    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+    <disk type="file" device="cdrom">
+      <driver name="qemu" type="raw"/>
+      <source file="/var/lib/libvirt/images/REPLACE-WITH-ISO-FILE.iso"/>
+      <target dev="sdb" bus="sata"/>
+      <readonly/>
+    </disk>
+    <interface type="network">
+      <mac address="52:54:00:xx:xx:xx"/>
+      <source network="default"/>
+      <model type="virtio"/>
+    </interface>
+    <!-- Hostdev PCI passthrough examples -->
+    <hostdev mode="subsystem" type="pci" managed="no">
+      <source>
+        <address domain="0x0000" bus="0x05" slot="0x00" function="0x0"/>
+      </source>
+    </hostdev>
+    <hostdev mode="subsystem" type="pci" managed="yes">
+      <source>
+        <address domain="0x0000" bus="0x0e" slot="0x00" function="0x3"/>
+      </source>
+    </hostdev>
+    <!-- (Rest of hostdev entries unchanged, PCI addresses are fine to keep as-is) -->
+    <graphics type="spice" autoport="yes">
+      <listen type="address"/>
+      <image compression="off"/>
+    </graphics>
+  </devices>
+  <qemu:commandline>
+    <qemu:arg value="-smbios"/>
+    <qemu:arg value="type=1,manufacturer=REDACTED,product=REDACTED,version=REDACTED,serial=REDACTED,uuid=REPLACE-WITH-UUID"/>
+    <qemu:arg value="-global"/>
+    <qemu:arg value="tpm-crb.buffer-size=4096"/>
+  </qemu:commandline>
+</domain>
+
