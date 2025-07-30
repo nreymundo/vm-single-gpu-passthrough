@@ -41,8 +41,12 @@ TL;DR: Here be dragons.
 │   │                       ├── 30-gpu.sh
 │   │                       ├── 40-governor.sh
 │   │                       └── 50-hugepages.sh
-│   └── modules-load.d/
-│       └── vfio.conf
+│   ├── modules-load.d/
+│   │   └── vfio.conf
+│   └── udev/
+│       └── rules.d/
+│           ├── 90-tpm-permissions.rules
+│           └── 99-vfio-permissions.rules
 └── virt-manager/
     └── sample.xml
 ```
@@ -52,6 +56,9 @@ TL;DR: Here be dragons.
     *   `prepare/begin`: Scripts that run before the VM starts.
     *   `release/end`: Scripts that run after the VM shuts down.
 *   `etc/modules-load.d/vfio.conf`: Kernel modules to be loaded at boot.
+*   `etc/udev/rules.d/`: Contains udev rules for device permissions.
+    *   `90-tpm-permissions.rules`: Sets permissions for the TPM device.
+    *   `99-vfio-permissions.rules`: Sets permissions for VFIO devices.
 *   `virt-manager/sample.xml`: A sample libvirt XML configuration for the VM.
 
 ## Prerequisites
