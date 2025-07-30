@@ -72,12 +72,13 @@ TL;DR: Here be dragons.
 
 1.  **Enable IOMMU**: Ensure that IOMMU is enabled in your BIOS/UEFI settings.
 2.  **Kernel Modules**: Copy the `vfio.conf` file to `/etc/modules-load.d/` to ensure the necessary VFIO modules are loaded at boot.
-3.  **Libvirt Hooks**:
+3.  **Udev Rules**: Copy the udev rule files from `etc/udev/rules.d/` to `/etc/udev/rules.d/`. After copying, reload the rules: `sudo udevadm control --reload-rules && sudo udevadm trigger`.
+4.  **Libvirt Hooks**:
     *   Copy the `qemu` hook script to `/etc/libvirt/hooks/`.
     *   Create the directory `/etc/libvirt/hooks/qemu.d/win11` and its subdirectories.
     *   Copy the scripts from `etc/libvirt/hooks/qemu.d/win11` to their corresponding locations.
     *   Make all the scripts executable: `chmod +x /etc/libvirt/hooks/qemu* -R`.
-4.  **VM Configuration**:
+5.  **VM Configuration**:
     *   Copy the `sample.xml` to a location of your choice.
     *   Customize the `sample.xml` file to match your hardware and preferences.
     *   Define the VM in libvirt: `virsh define sample.xml`.
