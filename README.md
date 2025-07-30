@@ -2,6 +2,14 @@
 
 This repository contains a collection of scripts and configuration files to facilitate a single GPU passthrough setup for a Windows 11 virtual machine using Libvirt and QEMU/KVM.
 
+## Note and disclaimer
+
+This setup is complex and can lead to system instability if not configured correctly. Always back up your data before making any changes. Use these scripts at your own risk.
+
+This is very opinionated and not guaranteed to be the most efficient setup (like, at all). Or stable, I've locked myself out of my host system because the USB controllers never bound back properly while setting it up. 
+
+TL;DR: Here be dragons. 
+
 ## Features
 
 *   **Automated GPU Passthrough**: Scripts to automatically detach the GPU from the host and attach it to the VM on startup, and vice-versa on shutdown.
@@ -79,16 +87,46 @@ This repository contains a collection of scripts and configuration files to faci
     *   Update the paths to your ISO and NVRAM files.
     *   Configure the CPU pinning to match your desired core allocation.
 
+### Make Libvirt run as  a fixed user instead of a dynamic one
+
+This can potentially have some security implications. Since this is just a gaming VM for every now and then I won't go into too much on that. 
+
+1. Edit `/etc/libvirt/qemu.conf` and change these fields
+```
+user = "libvirt-qemu" 
+group = "libvirt-qemu"
+dynamic_ownership = 0
+```
+
+### Hardware TPM passthrough
+
+You can use an emulated TPM and avoid a bit of configuration/headache but I wanted to make the VM look as 'real' as possible. 
+
+1. Add this to your XML file. 
+```xml
+<tpm model="tpm-tis">
+  <backend type="passthrough">
+    <device path="/dev/tpm0"/>
+  </backend>
+</tpm>
+```
+2. We will use an udev rule to change ownership so that libvirt can use it. 
+3. Add the user `libvirt-qemu` (or the user specified above) to the `tss` group. `sudo usermod -aG tss libvirt-qemu`. 
+4. Copy the udev rule from this repo to the appropriate path.
+5. Reload udev rules `sudo udevadm control --reload-rules`, trigger them `sudo udevadm trigger` and restart libvirt `sudo systemctl restart libvirtd`. 
+
+### VFIO device permissions
+
+Not necessary if you're using libvirt with the dynamic users (the default option). I had to change this for TPM passthrough instead of emulated so went down this rabbit hole. 
+
+Just copy the udev rule from the folder in this repo to the same place. Reload/retrigger them and restart libvirt. 
+
 ## Usage
 
 The hooks are executed automatically by libvirt when you start or stop the `win11` VM.
 
 *   **VM Start**: The scripts in `prepare/begin` are executed.
 *   **VM Shutdown**: The scripts in `release/end` are executed.
-
-## Disclaimer
-
-This setup is complex and can lead to system instability if not configured correctly. Always back up your data before making any changes. Use these scripts at your own risk.
 
 ## Credits
 
